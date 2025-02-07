@@ -1196,7 +1196,7 @@
         
   
   <span class="md-ellipsis">
-    Using predefined templates
+    Removing predefined templates
   </span>
   
 
@@ -1605,6 +1605,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../k0rdent-documentation-style-guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    k0rdent documentation style guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1860,9 +1881,8 @@ sudo<span class="w"> </span>install<span class="w"> </span>-o<span class="w"> </
 <p>These credentials will be used both by the AWS CLI (to create your k0rdent user) and by <code>clusterawsadm</code> (to create a CloudFormation template used by CAPA within k0rdent).</p>
 <h2 id="create-the-k0rdent-aws-user">Create the k0rdent AWS user<a class="headerlink" href="#create-the-k0rdent-aws-user" title="Permanent link">#</a></h2>
 <p>Now we can use the AWS CLI to create a new k0rdent user:</p>
-<div class="highlight"><pre><span></span><code><span class="w"> </span>aws<span class="w"> </span>iam<span class="w"> </span>create-user<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart
+<p><div class="highlight"><pre><span></span><code><span class="w"> </span>aws<span class="w"> </span>iam<span class="w"> </span>create-user<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart
 </code></pre></div>
-<p>You'll see something like what's shown below. You should save this data securely. Note the Amazon Resource Name (ARN) because we'll be using it right away:</p>
 <div class="highlight"><pre><span></span><code><span class="go">{</span>
 <span class="go">    &quot;User&quot;: {</span>
 <span class="go">        &quot;Path&quot;: &quot;/&quot;,</span>
@@ -1872,7 +1892,7 @@ sudo<span class="w"> </span>install<span class="w"> </span>-o<span class="w"> </
 <span class="go">        &quot;CreateDate&quot;: &quot;2025-01-18T08:15:27+00:00&quot;</span>
 <span class="go">    }</span>
 <span class="go">}</span>
-</code></pre></div>
+</code></pre></div></p>
 <h2 id="configure-aws-iam-for-k0rdent">Configure AWS IAM for k0rdent<a class="headerlink" href="#configure-aws-iam-for-k0rdent" title="Permanent link">#</a></h2>
 <p>Before k0rdent CAPI can manage resources on AWS, you need to use <code>clusterawsadm</code> to create a bootstrap CloudFormation stack with additional IAM policies and a service account. You do this under the administrative account credentials you earlier exported to the management node environment:</p>
 <div class="highlight"><pre><span></span><code>clusterawsadm<span class="w"> </span>bootstrap<span class="w"> </span>iam<span class="w"> </span>create-cloudformation-stack
@@ -1884,11 +1904,14 @@ sudo<span class="w"> </span>install<span class="w"> </span>-o<span class="w"> </
 <li><code>controllers.cluster-api-provider-aws.sigs.k8s.io</code></li>
 <li><code>nodes.cluster-api-provider-aws.sigs.k8s.io</code></li>
 </ul>
-<p>We use the AWS CLI to attach them. To do this, you will need to extract the Amazon Resource Name (ARN) for the newly-created user. In the above example of content returned from the AWS CLI on user creation (see above) that's marked with the placeholder <code>FAKE_ARN_123</code>:</p>
-<p>Given this, you can assemble and execute the following commands to implement the required policies:</p>
-<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>attach-user-policy<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--policy-arn<span class="w"> </span>arn:aws:iam::FAKE_ARN_123:policy/control-plane.cluster-api-provider-aws.sigs.k8s.io
-aws<span class="w"> </span>iam<span class="w"> </span>attach-user-policy<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--policy-arn<span class="w"> </span>arn:aws:iam::FAKE_ARN_123:policy/controllers-eks.cluster-api-provider-aws.sigs.k8s.io
-aws<span class="w"> </span>iam<span class="w"> </span>attach-user-policy<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--policy-arn<span class="w"> </span>arn:aws:iam::FAKE_ARN_123:policy/controllers.cluster-api-provider-aws.sigs.k8s.io
+<p>We use the AWS CLI to attach them. To do this, you will need to extract the Amazon Resource Name (ARN) for the newly-created user:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_ARN_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>iam<span class="w"> </span>get-user<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--query<span class="w"> </span><span class="s1">&#39;User.Arn&#39;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;\d{12}&#39;</span><span class="k">)</span>
+<span class="nb">echo</span><span class="w"> </span><span class="nv">$AWS_ARN_ID</span>
+</code></pre></div>
+<p>Assemble and execute the following commands to implement the required policies:</p>
+<div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>attach-user-policy<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--policy-arn<span class="w"> </span>arn:aws:iam::<span class="nv">$AWS_ARN_ID</span>:policy/control-plane.cluster-api-provider-aws.sigs.k8s.io
+aws<span class="w"> </span>iam<span class="w"> </span>attach-user-policy<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--policy-arn<span class="w"> </span>arn:aws:iam::<span class="nv">$AWS_ARN_ID</span>:policy/controllers-eks.cluster-api-provider-aws.sigs.k8s.io
+aws<span class="w"> </span>iam<span class="w"> </span>attach-user-policy<span class="w"> </span>--user-name<span class="w"> </span>k0rdentQuickstart<span class="w"> </span>--policy-arn<span class="w"> </span>arn:aws:iam::<span class="nv">$AWS_ARN_ID</span>:policy/controllers.cluster-api-provider-aws.sigs.k8s.io
 </code></pre></div>
 <p>We can check to see that policies were assigned:</p>
 <p><div class="highlight"><pre><span></span><code>aws<span class="w"> </span>iam<span class="w"> </span>list-policies<span class="w"> </span>--scope<span class="w"> </span>Local
@@ -1971,7 +1994,7 @@ And you'll see output that looks like this (this is non-valid example text):</p>
 -->
 
 <h2 id="create-iam-credentials-secret-on-the-management-cluster">Create IAM credentials secret on the management cluster<a class="headerlink" href="#create-iam-credentials-secret-on-the-management-cluster" title="Permanent link">#</a></h2>
-<p>Next, we create a <code>Secret' containing credentials for the k0rdent user and apply this to the management cluster running k0rdent, in the</code>kcm-system<code>namespace (important: if you use another namespace, k0rdent will be unable to read the credentials). To do this, create the following YAML in a file called</code>aws-cluster-identity-secret.yaml':</p>
+<p>Next, we create a <code>Secret</code> containing credentials for the k0rdent user and apply this to the management cluster running k0rdent, in the <code>kcm-system</code> namespace (important: if you use another namespace, k0rdent will be unable to read the credentials). To do this, create the following YAML in a file called <code>aws-cluster-identity-secret.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
 <span class="nt">metadata</span><span class="p">:</span>
@@ -2092,11 +2115,10 @@ And you'll see output that looks like this (this is non-valid example text):</p>
 </code></pre></div>
 <h2 id="obtain-the-clusters-kubeconfig">Obtain the cluster's kubeconfig<a class="headerlink" href="#obtain-the-clusters-kubeconfig" title="Permanent link">#</a></h2>
 <p>Now you can retrieve the cluster's <code>kubeconfig</code>:</p>
-<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>kcm-system<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>my-aws-clusterdeployment1-kubeconfig<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.data.value}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d<span class="w"> </span>&gt;<span class="w"> </span>my-aws-clusterdeployment1-kubeconfig.kubeconfig
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>kcm-system<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>my-aws-clusterdeployment1-kubeconfig<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.data.value}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d<span class="w"> </span>&gt;<span class="w"> </span>my-aws-clusterdeployment1.kubeconfig
 </code></pre></div>
 <p>And you can use the <code>kubeconfig</code> to see what's running on the cluster:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">KUBECONFIG</span><span class="o">=</span><span class="s2">&quot;my-aws-clusterdeployment1-kubeconfig.kubeconfig&quot;</span>
-kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-A
+<div class="highlight"><pre><span></span><code><span class="nv">KUBECONFIG</span><span class="o">=</span><span class="s2">&quot;my-aws-clusterdeployment1.kubeconfig&quot;</span><span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-A
 </code></pre></div>
 <h2 id="list-child-clusters">List child clusters<a class="headerlink" href="#list-child-clusters" title="Permanent link">#</a></h2>
 <p>To verify the presence of the child cluster, list the available <code>ClusterDeployment</code> objects:</p>
